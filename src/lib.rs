@@ -1,65 +1,56 @@
-use std::collections::HashMap;
-use evdev::{Device, EventType, InputEvent,  RelativeAxisType};
-use evdev::InputEventKind::{Key, RelAxis};
+use std::env::Args;
+use std::process::exit;
+use std::time::SystemTime;
 
 
-pub struct KeyHit {
-    name : String ,
-    device : String,
-    types : EventType,
-    count : HashMap<u16,u64> ,
+#[derive(Debug,Copy, Clone)]
+pub struct TheEvent(SystemTime,u16);
+impl TheEvent{
+    pub fn new(time:SystemTime,code:u16) -> TheEvent {
+        TheEvent(time,code)
+    }
 }
 
-impl KeyHit {
 
-    pub fn new(name:String,device:String,types:EventType,count:HashMap<u16,u64>) -> KeyHit {
-        KeyHit { name, device, types, count, }
+
+
+
+
+
+
+
+
+
+
+
+/// helper
+///
+pub fn do_help(err : &str) -> ! {
+
+    eprintln!("Please input correctly Bro, Like this \n# sudo chars -k /dev/input/event5 -m /dev/input/event14");
+    if err.len() != 0 {
+
+        eprintln!("Detailed Error is {}",err);
     }
-
-    pub fn do_count(&mut self, ev: InputEvent) {
-        // YYYYYYYYYYYYY RelAxis(REL_WHEEL_HI_RES)
-        // https://patchwork.kernel.org/project/linux-input/patch/20181121152712.6770-8-benjamin.tissoires@redhat.com/
-
-         match ev.kind(){
-             // deal keyboard and mouse keys
-            Key(kk) if ev.value() == 0  => {
-                self.add_counter(kk.code())
-            },
-             // deal mouse wheel roll
-            RelAxis(ww) =>
-                if ww == RelativeAxisType::REL_WHEEL {
-                    self.add_counter(0xffff)
-            },
-            _ => {},
-        };
-    }
-    pub fn open_device(&self) -> Device {
-        Device::open(&self.device).unwrap()
-    }
-
-    fn add_counter(&mut self, k : u16 ){
-
-        // increase
-        let count = self.count.entry(k).or_insert(0);
-        *count += 1;
-
-        // summary
-        let mut cc: u64 = 0 ;
-        println!("XXXXXXXX {} XXXXXXXXXX",self.name);
-
-        for (k,v) in &self.count{
-            if 0xffff  == *k {
-                println!("key is REL_WHEEL counter is {}",v);
-            } else {
-                println!("key is {:?} counter is {}", evdev::Key::new(*k), v);
-            }
-                cc += v;
-        };
-
-        println!("XXXXXXXX {} XXXXXXXXXX",cc);
-        println!();
-    }
-
+    exit(2);
 }
 
+pub fn parse_args(mut list :Args) -> Result<(String,String),&'static str>{
+    list.next();
+    list.next();
+
+    let x = match list.next() {
+        Some(x) => x,
+        None => return Err("get keyboard failed")
+    };
+
+    list.next();
+
+    let y = match list.next() {
+        Some(x) => x,
+        None => return Err("get mouse failed")
+    };
+
+    Ok((x,y))
+}
 

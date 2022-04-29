@@ -1,38 +1,15 @@
 use std::collections::HashMap;
 use std::env::Args;
 use std::process::exit;
+use std::sync::mpsc;
+use std::sync::mpsc::Sender;
 use std::thread;
-use evdev::EventType;
-use chars::KeyHit;
+use std::time::SystemTime;
+use evdev::{Device, EventType, InputEventKind, RelativeAxisType};
+use chars::{do_help, parse_args, TheEvent};
 
-fn do_help(err : &str) -> ! {
 
-    eprintln!("Please input correctly Bro, Like this \n# sudo chars -k /dev/input/event5 -m /dev/input/event14");
-    if err.len() != 0 {
 
-        eprintln!("Detailed Error is {}",err);
-    }
-    exit(2);
-}
-
-fn parse_args(mut list :Args) -> Result<(String,String),&'static str>{
-    list.next();
-    list.next();
-
-    let x = match list.next() {
-        Some(x) => x,
-        None => return Err("get keyboard failed")
-    };
-
-    list.next();
-
-    let y = match list.next() {
-        Some(x) => x,
-        None => return Err("get mouse failed")
-    };
-
-    Ok((x,y))
-}
 
 
 fn main() {
@@ -43,50 +20,42 @@ fn main() {
     }
     let (kd,md) = parse_args(args).unwrap_or_else(|err|{ do_help(err);});
 
-    let k_counter = HashMap::new();
-    let m_counter = HashMap::new();
+    let (tx,rx) = mpsc::channel();
+    let tx_m = tx.clone();
 
-    let mut keyboard = KeyHit::new(
-        "keyboard".to_string(),
-        kd,
-        EventType::KEY,
-        k_counter);
-
-    let mut mouse = KeyHit::new(
-        "mouse".to_string(),
-        md,
-        EventType::KEY,
-        m_counter);
-
-    let _handle1 = thread::spawn( move || {
-        let key = &mut keyboard;
-        let mut dev =  key.open_device();
-        loop {
-            // get all inputevents
-            for ev in dev.fetch_events().unwrap() {
-                key.do_count(ev);
-            }
-        }
+    thread::spawn( move || {
+        do_send(kd,tx);
     });
 
-    let _handle2 = thread::spawn( move || {
-        let key = &mut mouse;
-        let mut dev =  key.open_device();
-        loop {
-            // get all inputevents
-            for ev in dev.fetch_events().unwrap() {
-                key.do_count(ev);
-            }
-        }
+    thread::spawn( move || {
+        do_send(md,tx_m);
     });
 
-
-    _handle1.join().unwrap();
-    _handle2.join().unwrap();
-
+    for x in rx{
+        println!("{:?}",x);
+    }
 
 }
 
+fn do_send (kd:String, tx: Sender<TheEvent>){
+
+    let mut dev = Device::open(kd).unwrap();
+    loop {
+        for ev in dev.fetch_events().unwrap() {
+            match ev.kind(){
+                InputEventKind::Key(x) if ev.value() == 0 => {
+                    tx.send( TheEvent::new(ev.timestamp(),ev.code())).unwrap();
+                },
+                InputEventKind::RelAxis(ww) =>
+                    if ww == RelativeAxisType::REL_WHEEL {
+                        tx.send( TheEvent::new(ev.timestamp(),0xffff)).unwrap();
+                    },
+                _ => {}
+            };
+        }
+    }
+
+}
 
 
 
