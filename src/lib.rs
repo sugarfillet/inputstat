@@ -87,6 +87,8 @@ pub fn do_timer(int:u64,top:u64 ,q1:Arc<Mutex<Vec<TheEvent>>>){
 
         let mut sorted :Vec<_> = k_map.iter().collect();
         sorted.sort_by_key(|a| a.1);
+        sorted.reverse();
+
 
         for (k,v) in sorted.iter().enumerate(){
             if k  == top as usize {
@@ -98,11 +100,15 @@ pub fn do_timer(int:u64,top:u64 ,q1:Arc<Mutex<Vec<TheEvent>>>){
         println!();
 
         print!(">> ");
-        for (k,v) in m_map{
-            if k == 0xffff {
+
+        let mut sorted :Vec<_> = m_map.iter().collect();
+        sorted.sort_by_key(|a| a.1);
+        sorted.reverse();
+        for (k,v) in sorted{
+            if *k == 0xffff {
                 print!(" WHEEL -> {} ## ",v);
             } else {
-                print!(" {:?} -> {} ## ",evdev::Key(k),v);
+                print!(" {:?} -> {} ## ",evdev::Key(*k),*v);
             }
         }
         println!();
