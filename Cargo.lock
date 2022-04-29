@@ -39,13 +39,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "baf1de4339761588bc0619e3cbc0120ee582ebb74b53b4efbf79117bd2da40fd"
 
 [[package]]
-name = "chars"
-version = "0.1.0"
-dependencies = [
- "evdev",
-]
-
-[[package]]
 name = "evdev"
 version = "0.11.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -61,6 +54,13 @@ name = "funty"
 version = "2.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e6d5a32815ae3f33302d95fdcb2ce17862f8c65363dcfd29360480ba1001fc9c"
+
+[[package]]
+name = "inputstat"
+version = "0.1.0"
+dependencies = [
+ "evdev",
+]
 
 [[package]]
 name = "libc"

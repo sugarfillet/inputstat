@@ -1,12 +1,9 @@
-use std::collections::HashMap;
-use std::env::Args;
-use std::process::exit;
-use std::sync::mpsc;
-use std::sync::mpsc::Sender;
+extern crate core;
+
+
+use std::sync::{Arc, mpsc, Mutex};
 use std::thread;
-use std::time::SystemTime;
-use evdev::{Device, EventType, InputEventKind, RelativeAxisType};
-use chars::{do_help, parse_args, TheEvent};
+use inputstat::{Dev, do_help, do_send, do_timer, parse_args, };
 
 
 
@@ -15,10 +12,13 @@ use chars::{do_help, parse_args, TheEvent};
 fn main() {
 
     let  args= std::env::args();
-    if args.len() != 5 {
+    if args.len() != 6 {
         do_help("");
     }
-    let (kd,md) = parse_args(args).unwrap_or_else(|err|{ do_help(err);});
+    let (kd,md,int) = parse_args(args).unwrap_or_else(|err|{ do_help(err);});
+
+    let kd= Dev::new(kd,true);
+    let md = Dev::new(md,false);
 
     let (tx,rx) = mpsc::channel();
     let tx_m = tx.clone();
@@ -31,31 +31,26 @@ fn main() {
         do_send(md,tx_m);
     });
 
-    for x in rx{
-        println!("{:?}",x);
-    }
 
-}
 
-fn do_send (kd:String, tx: Sender<TheEvent>){
+    let queue = Arc::new(Mutex::new(Vec::new()));
 
-    let mut dev = Device::open(kd).unwrap();
-    loop {
-        for ev in dev.fetch_events().unwrap() {
-            match ev.kind(){
-                InputEventKind::Key(x) if ev.value() == 0 => {
-                    tx.send( TheEvent::new(ev.timestamp(),ev.code())).unwrap();
-                },
-                InputEventKind::RelAxis(ww) =>
-                    if ww == RelativeAxisType::REL_WHEEL {
-                        tx.send( TheEvent::new(ev.timestamp(),0xffff)).unwrap();
-                    },
-                _ => {}
-            };
+    // push the received events push to queue
+    let q0 = Arc::clone(&queue);
+    thread::spawn(move || {
+        for x in rx{
+            let mut q = q0.lock().unwrap();
+            q.push(x);
         }
-    }
+    });
+
+    // show the queue every <int> seconds
+    let q1 = Arc::clone(&queue);
+    do_timer(int,5,q1);
 
 }
+
+
 
 
 
