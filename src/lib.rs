@@ -1,3 +1,8 @@
+//! inputstat
+//!
+//! `inputstat` is a vmstat-like tools which monitors keyboard and mouse events on linux.
+
+
 use std::collections::HashMap;
 use std::env::Args;
 use std::process::exit;
@@ -8,6 +13,10 @@ use std::time::{Duration, SystemTime};
 use evdev::{Device, InputEventKind, RelativeAxisType};
 
 
+
+
+
+/// input event
 #[derive(Debug,Copy, Clone)]
 pub struct TheEvent(SystemTime,u16,bool);
 impl TheEvent{
@@ -28,7 +37,7 @@ impl TheEvent{
 }
 
 
-
+/// mouse or keyboard
 pub struct Dev(String,bool);
 impl Dev{
     pub fn new(s:String,t:bool) -> Dev{
@@ -37,6 +46,7 @@ impl Dev{
 }
 
 
+/// event handling routine
 
 pub fn do_send (k_or_m :Dev, tx: Sender<TheEvent>){
 
@@ -58,7 +68,7 @@ pub fn do_send (k_or_m :Dev, tx: Sender<TheEvent>){
 
 }
 
-
+/// output routine
 
 pub fn do_timer(int:u64,top:u64 ,q1:Arc<Mutex<Vec<TheEvent>>>){
     loop {
@@ -125,11 +135,11 @@ pub fn do_timer(int:u64,top:u64 ,q1:Arc<Mutex<Vec<TheEvent>>>){
 
 
 
-/// helper
+/// cmdline hinter
 ///
 pub fn do_help(err : &str) -> ! {
 
-    eprintln!("Please input correctly Bro, Like this \n# sudo inputstat -k /dev/input/event5 -m /dev/input/event14");
+    eprintln!("Please input correctly Bro, Like this \n# sudo inputstat -k /dev/input/event5 -m /dev/input/event14 5 ");
     if err.len() != 0 {
 
         eprintln!("Detailed Error is {}",err);
@@ -137,6 +147,9 @@ pub fn do_help(err : &str) -> ! {
     exit(2);
 }
 
+
+/// arguments parser
+///
 pub fn parse_args(mut list :Args) -> Result<(String,String,u64),&'static str>{
     list.next();
     list.next();

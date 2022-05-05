@@ -8,7 +8,6 @@ use inputstat::{Dev, do_help, do_send, do_timer, parse_args, };
 
 
 
-
 fn main() {
 
     let  args= std::env::args();
