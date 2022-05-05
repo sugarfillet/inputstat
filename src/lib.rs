@@ -1,6 +1,6 @@
 //! inputstat
 //!
-//! `inputstat` is a vmstat-like tools which monitors keyboard and mouse events on linux.
+//! `inputstat` is a vmstat-like tool which monitors keyboard and mouse events on linux.
 
 
 use std::collections::HashMap;

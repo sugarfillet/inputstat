@@ -1,7 +1,7 @@
 # inputstat 
 
 ## What is it 
-inputstat is a vmstat-like tools which monitors keyboard and mouse events on linux.
+inputstat is a vmstat-like tool which monitors keyboard and mouse events on linux.
 in detail, collects and reports the activity statistics of keyboard and mouse. And it is written by rust.
 
 ## Demo 

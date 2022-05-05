@@ -1,9 +1,9 @@
 [package]
 name = "inputstat"
 authers = "sugarfillet"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2021"
-description = "a vmstat-like tools which monitors keyboard and mouse events"
+description = "a vmstat-like tool which monitors keyboard and mouse events"
 license = "MIT OR Apache-2.0"
 
 [dependencies]
