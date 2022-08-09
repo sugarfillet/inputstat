@@ -1,8 +1,10 @@
 [package]
 name = "inputstat"
 authers = "sugarfillet"
-version = "0.1.1"
+version = "0.1.2"
 edition = "2021"
+keywords = ["evdev", "mouseless"]
+repository = "https://github.com/sugarfillet/inputstat"
 description = "a vmstat-like tool which monitors keyboard and mouse events"
 license = "MIT OR Apache-2.0"
 
